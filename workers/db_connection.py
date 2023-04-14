@@ -18,8 +18,5 @@ def db_con():
         DATABASE,
     )
     engine = sa.create_engine(connection_string)
-   # connection = engine.connect()
     
     return engine
-     
-db_con()
