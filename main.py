@@ -1,12 +1,27 @@
+import logging
 from workers import db_connection
 from workers import get_sheets_gs
 
-data = get_sheets_gs.get_data(spreadsheet_name=input("Enter Google Sheets name: "))
+logger = logging.getLogger(__name__)
 
-table_name = input("Enter table name: ")
+def extract_load():
+    data = get_sheets_gs.get_data(spreadsheet_name=input("Enter Google Sheets name: "))
 
-engine = db_connection.db_con()
+    table_name = input("Enter table name: ")
 
-data.to_sql(table_name, con=engine, if_exists="replace", index=False, schema="sheets")
+    engine = db_connection.db_con()
 
-print("FIM!")
+    data_sql = data.to_sql(
+        table_name, con=engine, if_exists="replace", index=False, schema="sheets"
+    )
+
+    return data_sql
+
+
+if __name__ == "__main__":
+    try:
+        extract_load()
+        print({"success": True})
+    except: 
+        print("ERROR!!!\nSheets not found.")
+    
