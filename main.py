@@ -1,29 +1,27 @@
-import gspread
-import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
+import logging
+from workers import db_connection
+from workers import get_sheets_gs
 
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
-]
+logger = logging.getLogger(__name__)
 
-# defines key_file.json address
-service_account_file = (
-    r"EDIT"
-)
+def extract_load():
+    data = get_sheets_gs.get_data(spreadsheet_name=input("Enter Google Sheets name: "))
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(service_account_file, scope)
+    table_name = input("Enter table name: ")
 
-client = gspread.authorize(creds)
+    engine = db_connection.db_con()
 
-# get the instance of the Spreadsheet
-sheet = client.open("EDIT")
+    data_sql = data.to_sql(
+        table_name, con=engine, if_exists="replace", index=False, schema="sheets"
+    )
 
-# get the first sheet of the Spreadsheet
-sheet_instance = sheet.get_worksheet(0)
+    return data_sql
 
-records_data = sheet_instance.get_all_records()
 
-records_df = pd.DataFrame.from_dict(records_data)
-
-print(records_df.head())
+if __name__ == "__main__":
+    try:
+        extract_load()
+        print({"success": True})
+    except: 
+        print("ERROR!!!\nSheets not found.")
+    
